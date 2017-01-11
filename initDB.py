@@ -119,10 +119,6 @@ def create_geo_index():
     num = 3
     collection.createIndex( { 'location' : "2d" } )
 
-
-
-
-
 if __name__ == '__main__':
     # parse_data_into_mongo()
     # file_name = 'data/results_hk.csv'
