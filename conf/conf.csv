@@ -1,5 +1,5 @@
 id,name,img_c,result_c,img_file,result_file,folder
 hk,HongKong,img_hk,result_hk,,results_hk.csv,data
 london,London,img_london,result_london,,results_london.csv,data
-nyc,New York,,,,,data
+nyc,New York,img_nyc,result_nyc,,results_nyc.csv,data
 singapore,Singapore,img_singapore,result_singapore,,results_sg.csv,data

@@ -47,6 +47,8 @@ def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
             items = data_line.split(',')
             item_record = {}
             location = [None, None]
+            max_attr = None
+            max_value = -1
             for index in range(0, len(items)):
                 key = index2schema[index]
                 value = items[index].strip()
@@ -58,6 +60,14 @@ def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
                     item_record[key] = int(value)
                 else:
                     item_record[key] = float(value)
+                    if max_value < item_record[key]:
+                        max_value = item_record[key]
+                        max_attr = index2schema[index]
+                        item_record['max_attr'] = {
+                            'attr': max_attr,
+                            'value': max_value
+                        }
+
             if location[0] == None or location[1] == None:
                 continue
             item_record['location'] = location
@@ -120,14 +130,14 @@ def create_geo_index():
     collection.createIndex( { 'location' : "2d" } )
 
 if __name__ == '__main__':
-    # parse_data_into_mongo()
+    parse_data_into_mongo()
     # file_name = 'data/results_hk.csv'
     # count_number_of_lines(file_name)
 
     # create_geo_index()
-    start_time = time.time()
-    test_query()
+    # start_time = time.time()
+    # test_query()
     # create_geo_index()
-    end_time = time.time()
-    print end_time - start_time
+    # end_time = time.time()
+    # print end_time - start_time
     pass
