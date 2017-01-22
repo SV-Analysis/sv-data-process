@@ -18,7 +18,6 @@ class Configuration():
             index2schema = {}
             schema_arr = schema.split(',')
             length = len(schema_arr)
-
             for index in range(0, length):
                 index2schema[index] = schema_arr[index]
             conf_line = f.readline()
@@ -31,8 +30,10 @@ class Configuration():
                 confs.append(record)
                 conf_line = f.readline()
 
-        with open(out_path + '/conf.json', 'w') as outfile:
-            json.dump(confs, outfile)
+        conf_obj = {'overall_c': 'overall_result_c', 'conf': confs}
+
+        with open(out_path + '/configuration.json', 'w') as outfile:
+            json.dump(conf_obj, outfile)
 
     def read_configuration(self, path):
         """
@@ -40,7 +41,7 @@ class Configuration():
         :param path:
         :return:
         """
-        with open(path + '/conf.json', 'r') as readfile:
+        with open(path + '/configuration.json', 'r') as readfile:
             conf = json.load(readfile)
             return conf
 
