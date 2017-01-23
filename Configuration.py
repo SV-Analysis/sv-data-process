@@ -49,4 +49,4 @@ class Configuration():
 if __name__ == "__main__":
     conf = Configuration()
     conf.generate_conf_json(CONFIG_PATH, OUTPUT_PATH)
-    print conf.read_configuration(OUTPUT_PATH)
+    print(conf.read_configuration(OUTPUT_PATH))

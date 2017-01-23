@@ -11,9 +11,16 @@ CONFIG_FOLDER = 'output'
 DBNAME = 'sv_analysis'
 RESULT_COLLECTION_NAME = 'result_c'
 RESULT_FILE = 'result_file'
+IMAGE_FILE = 'img_file'
 FOLDER = 'folder'
 NAME = 'name'
 OVERALLNAME = 'overall_result'
+
+
+def parse_image_line(line):
+    first_string = line.split(' ')[0]
+    arr = first_string.split('/')
+    return '/'.join(arr[7:])
 
 def parse_result_data_into_mongo():
     conf = Configuration()
@@ -23,10 +30,12 @@ def parse_result_data_into_mongo():
     for city in cities:
         c_name = city[RESULT_COLLECTION_NAME]
         whole_path = city[FOLDER] + '/' + city[RESULT_FILE]
+        whole_img_path = city[FOLDER] + '/' + city[IMAGE_FILE]
         overall_result_name = city[OVERALLNAME]
         if c_name == '':
             continue
-        records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name)
+        print('here')
+        records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name, whole_img_path)
         import_overall_result_to_mongo(HOST, PORT, d_name, overall_result_name, records)
 
 def import_overall_result_to_mongo(HOST, PORT, d_name, overall_name, records):
@@ -42,13 +51,13 @@ def import_overall_result_to_mongo(HOST, PORT, d_name, overall_name, records):
         collection.insert({'seg': record})
         i += 1
 
-
-def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
+def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name, whole_img_path):
     client = MongoClient(HOST, PORT)
     db = client[d_name]
     collection = db[c_name]
     collection.remove({})
-    with open(filename, 'r') as inputfile:
+    with open(filename, 'r') as inputfile, open(whole_img_path, 'r') as imageFile:
+        img_lines = imageFile.readlines()
         schema_line = inputfile.readline()
         index2schema = {}
         schema_arr = schema_line.split(',')
@@ -66,6 +75,7 @@ def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
             location = [None, None]
             max_attr = None
             max_value = -1
+            image_id = None
             for index in range(0, len(items)):
                 key = index2schema[index]
                 value = items[index].strip()
@@ -74,7 +84,9 @@ def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
                 elif key == 'latitude':
                     location[1] = float(value)
                 elif key == 'index':
-                    item_record[key] = int(value)
+                    image_id = int(value)
+                    item_record[key] = image_id
+                    item_record['img_path'] = parse_image_line(img_lines[image_id])
                 else:
                     item_record[key] = float(value)
                     if max_value < item_record[key]:
@@ -88,16 +100,17 @@ def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name):
             if location[0] == None or location[1] == None:
                 continue
             item_record['location'] = location
+
             collection.insert(item_record)
             records.append(item_record)
             parsed_number += 1
 
             if parsed_number % 10000 == 0:
-                print parsed_number,' lines in ', filename, ' are parsed!'
+                print(parsed_number,' lines in ', filename, ' are parsed!')
             data_line = inputfile.readline()
 
             overall_records.append([location[1], location[0], max_attr])
-        print 'Import', filename, 'finished!'
+        print('Import', filename, 'finished!')
         return overall_records
 
 def count_number_of_lines(filename):
@@ -107,7 +120,7 @@ def count_number_of_lines(filename):
         while line:
             number += 1
             line = readfile.readline()
-        print number
+        print(number)
 
 def test_query():
     client = MongoClient(HOST, PORT)
@@ -140,7 +153,7 @@ def test_query():
     }):
         num += 1
 
-    print num
+    print(num)
 
 
 def create_geo_index():
@@ -151,26 +164,20 @@ def create_geo_index():
 
 def split_list(alist, wanted_parts=1):
     length = len(alist)
-    return [ alist[i*length // wanted_parts: (i+1)*length // wanted_parts] for i in range(wanted_parts)]
+
+    return [ alist[int(i*length // wanted_parts): int((i+1)*length // wanted_parts)] for i in range(wanted_parts)]
 
 def split_list_block(alist, block_size = 1):
-    return split_list(alist, len(alist) / block_size)
+    return split_list(alist, int(len(alist) / block_size))
+
 
 
 if __name__ == '__main__':
     parse_result_data_into_mongo()
-    # file_name = 'data/results_hk.csv'
-    # count_number_of_lines(file_name)
 
-    # create_geo_index()
-    # start_time = time.time()
-    # test_query()
-    # create_geo_index()
-    # end_time = time.time()
-    # print end_time - start_time
-
-    # print split_list(arr, wanted_parts= 3)
-    # print 30 / 5 / 3
-    # arr = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-    # print split_list_block(arr, 7)
-    pass
+    # with open('data/hongkong_caffe.txt', 'r') as inputfile:
+    #     lines = inputfile.readlines()
+    #     line = lines[100]
+    #     print(parse_image_line(line))
+    # temp_arr = [1,2,3,4,5,6,7,8,10,12,11,2,3,4,1,2,2,3,5]
+    # print(split_list_block(temp_arr, 5))
