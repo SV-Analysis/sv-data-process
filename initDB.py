@@ -15,7 +15,7 @@ FOLDER = 'folder'
 NAME = 'name'
 OVERALLNAME = 'overall_result'
 
-def parse_data_into_mongo():
+def parse_result_data_into_mongo():
     conf = Configuration()
     cityObj = conf.read_configuration(CONFIG_FOLDER)
     d_name = DBNAME
@@ -158,7 +158,7 @@ def split_list_block(alist, block_size = 1):
 
 
 if __name__ == '__main__':
-    parse_data_into_mongo()
+    parse_result_data_into_mongo()
     # file_name = 'data/results_hk.csv'
     # count_number_of_lines(file_name)
 
