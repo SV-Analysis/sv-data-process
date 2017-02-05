@@ -3,6 +3,8 @@ import datetime
 from pymongo import MongoClient
 from Configuration import Configuration
 import time
+from ParseOSM import OSMParser
+from initOSMDB import parse_leaf_2_obj
 
 HOST = "127.0.0.1"
 PORT = 27017
@@ -16,27 +18,80 @@ FOLDER = 'folder'
 NAME = 'name'
 OVERALLNAME = 'overall_result'
 
+OSM_FOLDER = 'osm_folder'
+OSM_FILE = 'osm_file'
+OSM_NODE_COLLECTION = 'osm_node_collection'
+OSM_WAY_COLLECTION = 'osm_way_collection'
 
 def parse_image_line(line):
     first_string = line.split(' ')[0]
     arr = first_string.split('/')
     return '/'.join(arr[7:])
 
-def parse_result_data_into_mongo():
+
+
+def parse_result_data_into_mongo(city_id):
     conf = Configuration()
     cityObj = conf.read_configuration(CONFIG_FOLDER)
     d_name = DBNAME
     cities = cityObj['conf']
     for city in cities:
-        c_name = city[RESULT_COLLECTION_NAME]
-        whole_path = city[FOLDER] + '/' + city[RESULT_FILE]
-        whole_img_path = city[FOLDER] + '/' + city[IMAGE_FILE]
-        overall_result_name = city[OVERALLNAME]
-        if c_name == '':
-            continue
-        print('here')
-        records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name, whole_img_path)
-        import_overall_result_to_mongo(HOST, PORT, d_name, overall_result_name, records)
+        if city_id == None or city_id == city['id']:
+            c_name = city[RESULT_COLLECTION_NAME]
+            whole_path = city[FOLDER] + '/' + city[RESULT_FILE]
+            whole_img_path = city[FOLDER] + '/' + city[IMAGE_FILE]
+            overall_result_name = city[OVERALLNAME]
+
+            osm_path = city[OSM_FOLDER] + '/' + city[OSM_FILE]
+            osm_node_c_name = city[OSM_NODE_COLLECTION]
+            osm_way_c_name = city[OSM_WAY_COLLECTION]
+
+            if c_name == '':
+                continue
+            # parse google street view into db
+            records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name, whole_img_path)
+            # all the records are storage with 50000 size block, need import_csv_to_mongo
+            import_overall_result_to_mongo(HOST, PORT, d_name, overall_result_name, records)
+
+            # parse osm file into db, please run the NYC and London seperately(data too large)
+            import_osm_to_mongo(osm_path, HOST, PORT, d_name, osm_node_c_name, osm_way_c_name)
+
+
+def import_osm_to_mongo(osm_path, HOST, PORT, d_name, osm_node_c_name, osm_way_c_name):
+    print('Insert', osm_path)
+    client = MongoClient(HOST, PORT)
+    print('2nodes',d_name)
+    db = client[d_name]
+    node_collection = db[osm_node_c_name]
+
+    node_collection.remove({})
+    print('2nodes')
+
+    # Init info
+    OSMHandler = OSMParser(osm_path)
+    nodes = OSMHandler.get_nodes()
+
+    number = 0
+    print('123nodes')
+    for type, node in nodes:
+        if number % 10000 == 0:
+            print(number, 'nodes of', osm_node_c_name ,'has been parsed!')
+        node_collection.insert(parse_leaf_2_obj(node))
+        number += 1
+
+
+    ways = OSMHandler.get_ways()
+    way_collection = db[osm_way_c_name]
+    way_collection.remove({})
+    number = 0
+    for type, way in ways:
+        if number % 10000 == 0:
+            print(number, 'ways of', osm_way_c_name ,'has been parsed!')
+        way_collection.insert(parse_leaf_2_obj(way))
+        number += 1
+
+    client.close()
+    print(osm_path, HOST, PORT, d_name, osm_node_c_name, osm_way_c_name)
 
 def import_overall_result_to_mongo(HOST, PORT, d_name, overall_name, records):
     client = MongoClient(HOST, PORT)
@@ -50,6 +105,7 @@ def import_overall_result_to_mongo(HOST, PORT, d_name, overall_name, records):
     for record in split_records:
         collection.insert({'seg': record})
         i += 1
+
 
 def import_csv_to_mongo(filename, HOST, PORT, d_name, c_name, whole_img_path):
     client = MongoClient(HOST, PORT)
@@ -171,9 +227,8 @@ def split_list_block(alist, block_size = 1):
     return split_list(alist, int(len(alist) / block_size))
 
 
-
 if __name__ == '__main__':
-    parse_result_data_into_mongo()
+    parse_result_data_into_mongo('nyc')
 
     # with open('data/hongkong_caffe.txt', 'r') as inputfile:
     #     lines = inputfile.readlines()
