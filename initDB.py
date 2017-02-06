@@ -49,9 +49,9 @@ def parse_result_data_into_mongo(city_id):
             if c_name == '':
                 continue
             # parse google street view into db
-            records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name, whole_img_path)
+            # records = import_csv_to_mongo(whole_path, HOST, PORT, d_name, c_name, whole_img_path)
             # all the records are storage with 50000 size block, need import_csv_to_mongo
-            import_overall_result_to_mongo(HOST, PORT, d_name, overall_result_name, records)
+            # import_overall_result_to_mongo(HOST, PORT, d_name, overall_result_name, records)
 
             # parse osm file into db, please run the NYC and London seperately(data too large)
             import_osm_to_mongo(osm_path, HOST, PORT, d_name, osm_node_c_name, osm_way_c_name)
@@ -62,29 +62,34 @@ def import_osm_to_mongo(osm_path, HOST, PORT, d_name, osm_node_c_name, osm_way_c
     client = MongoClient(HOST, PORT)
     print('2nodes',d_name)
     db = client[d_name]
-    node_collection = db[osm_node_c_name]
 
-    node_collection.remove({})
     print('2nodes')
 
     # Init info
     OSMHandler = OSMParser(osm_path)
-    nodes = OSMHandler.get_nodes()
+
 
     number = 0
-    print('123nodes')
-    for type, node in nodes:
-        if number % 10000 == 0:
-            print(number, 'nodes of', osm_node_c_name ,'has been parsed!')
-        node_collection.insert(parse_leaf_2_obj(node))
-        number += 1
+    # Init node_collection
+    # nodes = OSMHandler.get_nodes()
+    # node_collection = db[osm_node_c_name]
+    # node_collection.remove({})
+    # for type, node in nodes:
+    #     if number % 10000 == 0:
+    #         print(number, 'nodes of', osm_node_c_name ,'has been parsed!')
+    #     node_collection.insert(parse_leaf_2_obj(node))
+    #     number += 1
 
-
+    print('3nodes')
     ways = OSMHandler.get_ways()
     way_collection = db[osm_way_c_name]
+    print('4nodes')
     way_collection.remove({})
     number = 0
+    print('5nodes')
+    print('ways', ways)
     for type, way in ways:
+
         if number % 10000 == 0:
             print(number, 'ways of', osm_way_c_name ,'has been parsed!')
         way_collection.insert(parse_leaf_2_obj(way))
