@@ -1,5 +1,5 @@
-id,name,img_c,result_c,img_file,result_file,folder,overall_result,osm_folder,osm_file,osm_node_collection,osm_way_collection
-hk,HongKong,img_hk,result_hk,hongkong_caffe.txt,results_hk.csv,data,overall_result_hk,osm,HongKong.osm,node_hk,way_hk
-london,London,img_london,result_london,London_caffe.txt,results_london.csv,data,overall_result_london,osm,London.osm,node_london,way_london
-nyc,New York,img_nyc,result_nyc,NYC_caffe.txt,results_nyc.csv,data,overall_result_nyc,osm,NYC.osm,node_nyc,way_nyc
-singapore,Singapore,img_singapore,result_singapore,singapore_caffe.txt,results_sg.csv,data,overall_result_sg,osm,Singapore.osm,node_singapore,way_singapore
+id,name,img_c,result_c,img_file,result_file,folder,overall_result,osm_folder,osm_file,osm_node_collection,osm_way_collection,osm_street_collection
+hk,HongKong,img_hk,result_hk,hongkong_caffe.txt,results_hk.csv,data,overall_result_hk,osm,HongKong.osm,node_hk,way_hk,street_hk
+london,London,img_london,result_london,London_caffe.txt,results_london.csv,data,overall_result_london,osm,London.osm,node_london,way_london,street_london
+nyc,New York,img_nyc,result_nyc,NYC_caffe.txt,results_nyc.csv,data,overall_result_nyc,osm,NYC.osm,node_nyc,way_nyc,street_nyc
+singapore,Singapore,img_singapore,result_singapore,singapore_caffe.txt,results_sg.csv,data,overall_result_sg,osm,Singapore.osm,node_singapore,way_singapore,street_singapore
